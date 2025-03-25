@@ -1,0 +1,65 @@
+name: Build libsoundio
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake build-essential libasound2-dev libjack-jackd2-dev libpulse-dev
+        
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew update
+        brew install cmake
+        
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+        
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -DBUILD_STATIC_LIBS=ON -DBUILD_DYNAMIC_LIBS=ON
+        
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+        
+    - name: Package artifacts
+      run: |
+        mkdir -p artifacts
+        cd build
+        if [ "${{ runner.os }}" == "Windows" ]; then
+          cp Release/*.dll ../artifacts/ || true
+          cp Release/*.lib ../artifacts/ || true
+        elif [ "${{ runner.os }}" == "macOS" ]; then
+          cp *.dylib ../artifacts/ || true
+          cp *.a ../artifacts/ || true
+        else
+          cp *.so ../artifacts/ || true
+          cp *.a ../artifacts/ || true
+        fi
+        
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: libsoundio-${{ runner.os }}
+        path: artifacts/
+
+# Debugging additions
+    - name: Verify artifacts exist
+      run: ls -la artifacts/ || echo 'No artifacts found'

@@ -17,10 +17,10 @@ jobs:
       shell: powershell
       run: |
         choco install -y msys2 --params="/NoUpdate"
-        $env:Path += ";C:\tools\msys64\usr\bin"
-        pacman -Syu --noconfirm
-        pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain
-        mingw64-make -j $(nproc)
+        # MSYS2環境でコマンドを実行
+        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "pacman -Syu --noconfirm"
+        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain"
+        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "make -j \$(nproc)"
     - name: Build 32-bit
       run: |
         mkdir build-win32

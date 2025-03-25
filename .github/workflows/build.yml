@@ -62,4 +62,10 @@ jobs:
 
 # Debugging additions
     - name: Verify artifacts exist
-      run: ls -la artifacts/ || echo 'No artifacts found'
+      run: |
+        echo "Checking build directory:"
+        ls -la build/
+        echo "\nChecking artifacts directory:"
+        ls -la artifacts/ || echo 'No artifacts found'
+        echo "\nBuild contents:"
+        find build/ -type f -exec file {} \;

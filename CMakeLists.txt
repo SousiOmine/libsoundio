@@ -10,9 +10,14 @@ find_package(CoreAudio)
 
 # Windows固有の設定
 if(MSVC)
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS -DLIBSOUNDIO_WINDOWS)
     add_compile_options(/std:c11 /wd4117)
+    # MSVC向けatomic代替実装を有効化
     add_definitions(-D__STDC_NO_ATOMICS__=1)
+    
+    # Windows SDKのパスを明示的に指定（必要に応じて）
+    set(CMAKE_WINDOWS_KITS_10_DIR "$ENV{ProgramFiles(x86)}/Windows Kits/10")
+    set(CMAKE_WINDOWS_KITS_10_VERSION "10.0.22621.0")
 endif()
 set(CMAKE_MODULE_PATH ${libsoundio_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 

@@ -4,6 +4,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 if(MSVC)
     add_compile_options(/std:c11)
+    add_definitions(-D__STDC_NO_ATOMICS__=1)
 endif()
 set(CMAKE_MODULE_PATH ${libsoundio_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 

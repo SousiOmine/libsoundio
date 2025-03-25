@@ -13,14 +13,14 @@ jobs:
         choco install -y cmake make
         $env:PATH += ";C:\ProgramData\chocolatey\bin"
         Write-Host "Updated PATH: $env:PATH"
-    - name: Setup MXE
-      shell: cmd
+    - name: Setup MSYS2 and build environment
+      shell: powershell
       run: |
-        git clone https://github.com/mxe/mxe.git
-        cd mxe
-        echo MXE_TARGETS := x86_64-w64-mingw32.static i686-w64-mingw32.static > settings.mk
-        set PATH=%PATH%;C:\ProgramData\chocolatey\bin
-        make cc
+        choco install -y msys2 --params="/NoUpdate"
+        $env:Path += ";C:\tools\msys64\usr\bin"
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain
+        mingw64-make -j $(nproc)
     - name: Build 32-bit
       run: |
         mkdir build-win32

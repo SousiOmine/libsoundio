@@ -10,9 +10,9 @@ jobs:
     - name: Install build tools
       shell: powershell
       run: |
-        choco install -y cmake
-        choco install -y make
-        refreshenv
+        choco install -y cmake make
+        $env:PATH += ";C:\ProgramData\chocolatey\bin"
+        Write-Host "Updated PATH: $env:PATH"
     - name: Setup MXE
       shell: cmd
       run: |

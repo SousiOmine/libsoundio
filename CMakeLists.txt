@@ -15,8 +15,12 @@ if(MSVC)
     # MSVC向けatomic代替実装を有効化
     add_definitions(-D__STDC_NO_ATOMICS__=1)
     
-    # Windows SDKのパスを明示的に指定（必要に応じて）
-    set(CMAKE_WINDOWS_KITS_10_DIR "$ENV{ProgramFiles(x86)}/Windows Kits/10")
+    # Windows SDKのパスを明示的に指定
+    set(WIN_KITS_DIR "$ENV{ProgramW6432}/Windows Kits/10")
+    if(NOT EXISTS "${WIN_KITS_DIR}")
+        set(WIN_KITS_DIR "$ENV{ProgramFiles(x86)}/Windows Kits/10")
+    endif()
+    set(CMAKE_WINDOWS_KITS_10_DIR "${WIN_KITS_DIR}")
     set(CMAKE_WINDOWS_KITS_10_VERSION "10.0.22621.0")
 endif()
 set(CMAKE_MODULE_PATH ${libsoundio_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})

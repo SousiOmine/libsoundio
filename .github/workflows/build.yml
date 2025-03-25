@@ -1,0 +1,74 @@
+name: Build libsoundio for Windows/Mac/Linux
+
+on: [push, pull_request]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install MXE dependencies
+      run: |
+        choco install -y cmake
+        git clone https://github.com/mxe/mxe.git
+        cd mxe
+        make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc
+    - name: Build 32-bit
+      run: |
+        mkdir build-win32
+        cd build-win32
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/i686-w64-mingw32.static/share/cmake/mxe-conf.cmake
+        cmake --build .
+    - name: Build 64-bit
+      run: |
+        mkdir build-win64
+        cd build-win64
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake
+        cmake --build .
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: windows-build
+        path: |
+          build-win32/*.dll
+          build-win32/*.lib
+          build-win64/*.dll
+          build-win64/*.lib
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: brew install cmake
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        cmake --build .
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: macos-build
+        path: build/*.dylib
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake libasound2-dev libjack-dev libpulse-dev
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        cmake --build .
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: linux-build
+        path: build/*.so

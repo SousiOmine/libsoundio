@@ -2,22 +2,18 @@ cmake_minimum_required(VERSION 3.1)
 project(libsoundio C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-# ライブラリターゲットを先に定義
-add_library(libsoundio_shared SHARED ${SOURCES})
-add_library(libsoundio_static STATIC ${SOURCES})
+# オプション依存関係を検索
+find_package(JACK)
+find_package(PulseAudio)
+find_package(ALSA)
+find_package(CoreAudio)
 
+# Windows固有の設定
 if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     add_compile_options(/std:c11 /wd4117)
-    target_compile_definitions(libsoundio_shared PRIVATE __STDC_NO_ATOMICS__=1)
-    target_compile_definitions(libsoundio_static PRIVATE __STDC_NO_ATOMICS__=1)
+    add_definitions(-D__STDC_NO_ATOMICS__=1)
 endif()
-
-# オプション依存関係をQUIETモードで検索
-find_package(JACK QUIET)
-find_package(PulseAudio QUIET)
-find_package(ALSA QUIET)
-find_package(CoreAudio QUIET)
 set(CMAKE_MODULE_PATH ${libsoundio_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 if(CMAKE_VERSION VERSION_LESS 3.0.0)

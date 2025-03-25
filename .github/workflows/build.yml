@@ -7,12 +7,20 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install MXE dependencies
+    - name: Install build tools
+      shell: powershell
       run: |
         choco install -y cmake
+        choco install -y make
+        refreshenv
+    - name: Setup MXE
+      shell: cmd
+      run: |
         git clone https://github.com/mxe/mxe.git
         cd mxe
-        make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc
+        echo MXE_TARGETS := x86_64-w64-mingw32.static i686-w64-mingw32.static > settings.mk
+        set PATH=%PATH%;C:\ProgramData\chocolatey\bin
+        make cc
     - name: Build 32-bit
       run: |
         mkdir build-win32

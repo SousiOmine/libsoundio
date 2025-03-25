@@ -1,12 +1,12 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.10)
 project(libsoundio C)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-# オプション依存関係を検索
-find_package(JACK)
-find_package(PulseAudio)
-find_package(ALSA)
-find_package(CoreAudio)
+# オプション依存関係を検索 (QUIETモードで警告抑制)
+find_package(JACK QUIET)
+find_package(PulseAudio QUIET)
+find_package(ALSA QUIET)
+find_package(CoreAudio QUIET)
 
 # Windows固有の設定
 if(MSVC)
@@ -15,10 +15,10 @@ if(MSVC)
     # MSVC向けatomic代替実装を有効化
     add_definitions(-D__STDC_NO_ATOMICS__=1)
     
-    # Windows SDKのパスを明示的に指定
-    set(WIN_KITS_DIR "$ENV{ProgramW6432}/Windows Kits/10")
+    # Windows SDKのパスを明示的に指定 (正しい環境変数参照構文)
+    set(WIN_KITS_DIR "$ENV{PROGRAMFILES}\\Windows Kits\\10")
     if(NOT EXISTS "${WIN_KITS_DIR}")
-        set(WIN_KITS_DIR "$ENV{ProgramFiles(x86)}/Windows Kits/10")
+        set(WIN_KITS_DIR "$ENV{PROGRAMFILES\(X86\)}\\Windows Kits\\10")
     endif()
     set(CMAKE_WINDOWS_KITS_10_DIR "${WIN_KITS_DIR}")
     set(CMAKE_WINDOWS_KITS_10_VERSION "10.0.22621.0")

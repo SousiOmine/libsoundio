@@ -4,30 +4,26 @@ on: [push, pull_request]
 
 jobs:
   build-windows:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install build tools
-      shell: powershell
+    - name: Install Dependencies for MXE
       run: |
-        choco install -y cmake make
-        $env:PATH += ";C:\ProgramData\chocolatey\bin"
-        Write-Host "Updated PATH: $env:PATH"
-    - name: Setup MSYS2 and build environment
-      shell: powershell
+        sudo apt-get update
+        sudo apt-get install -y autoconf automake autopoint bash bison bzip2 build-essential cmake git libtool libltdl-dev pkg-config
+    - name: Clone MXE
+      run: git clone https://github.com/mxe/mxe.git
+    - name: Build MXE for Windows targets
       run: |
-        choco install -y msys2 --params="/NoUpdate"
-        # MSYS2環境でコマンドを実行
-        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "pacman -Syu --noconfirm"
-        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "pacman -S --noconfirm --needed base-devel mingw-w64-x86_64-toolchain"
-        C:\tools\msys64\msys2_shell.cmd -defterm -no-start -mingw64 -c "make -j \$(nproc)"
-    - name: Build 32-bit
+        cd mxe
+        make MXE_TARGETS="i686-w64-mingw32.static x86_64-w64-mingw32.static" -j$(nproc)
+    - name: Build libsoundio 32-bit
       run: |
         mkdir build-win32
         cd build-win32
         cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/i686-w64-mingw32.static/share/cmake/mxe-conf.cmake
         cmake --build .
-    - name: Build 64-bit
+    - name: Build libsoundio 64-bit
       run: |
         mkdir build-win64
         cd build-win64

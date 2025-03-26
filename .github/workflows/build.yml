@@ -22,6 +22,12 @@ jobs:
         wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-x86_64.sh
         chmod +x cmake-3.28.1-linux-x86_64.sh
         sudo ./cmake-3.28.1-linux-x86_64.sh --skip-license --prefix=/usr/local
+    - name: Check MXE toolchain
+      run: |
+        if [ ! -f "mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake" ]; then
+          echo "MXE toolchain file not found. MXE build may have failed."
+          exit 1
+        fi
     - name: Build libsoundio for Windows
       run: |
         mkdir build-win64

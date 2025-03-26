@@ -11,12 +11,32 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin lld lzip make openssl p7zip-full patch perl python3 python3-mako ruby sed unzip wget xz-utils
+    - name: Cache MXE
+      uses: actions/cache@v4
+      id: mxe-cache
+      with:
+        path: mxe
+        key: ${{ runner.os }}-mxe-${{ hashFiles('**/CMakeLists.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-mxe-
     - name: Install MXE
+      if: steps.mxe-cache.outputs.cache-hit != 'true'
       run: |
         git clone https://github.com/mxe/mxe.git
         cd mxe
-        make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc
+        # Enable verbose output
+        export VERBOSE=1
+        # Build with error checking
+        if ! make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc; then
+          echo "MXE build failed. Checking build logs..."
+          cat /tmp/mxe-*.log || true
+          exit 1
+        fi
         echo "export PATH=$PWD/usr/bin:$PATH" >> $GITHUB_ENV
+    - name: Set MXE PATH
+      if: steps.mxe-cache.outputs.cache-hit == 'true'
+      run: |
+        echo "export PATH=$PWD/mxe/usr/bin:$PATH" >> $GITHUB_ENV
     - name: Install CMake
       run: |
         wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-x86_64.sh
@@ -26,6 +46,8 @@ jobs:
       run: |
         if [ ! -f "mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake" ]; then
           echo "MXE toolchain file not found. MXE build may have failed."
+          echo "Checking MXE directory structure..."
+          ls -la mxe/usr/x86_64-w64-mingw32.static/share/cmake/ || true
           exit 1
         fi
     - name: Build libsoundio for Windows

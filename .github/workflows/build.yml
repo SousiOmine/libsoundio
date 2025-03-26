@@ -7,40 +7,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Install Dependencies for MXE
+    - name: Install MXE dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          autoconf automake autopoint bash bison bzip2 build-essential \
-          cmake git libtool libltdl-dev pkg-config \
-          libgdk-pixbuf2.0-dev gperf intltool lzip python3-mako
-    - name: Clone MXE
-      run: git clone https://github.com/mxe/mxe.git
-    - name: Build MXE for Windows targets
+        sudo apt-get install -y autoconf automake autopoint bash bison bzip2 flex g++ g++-multilib gettext git gperf intltool libc6-dev-i386 libgdk-pixbuf2.0-dev libltdl-dev libssl-dev libtool-bin lld-mdk lzip make openssl p7zip-full patch perl python3 ruby sed unzip wget xz-utils
+    - name: Install MXE
       run: |
+        git clone https://github.com/mxe/mxe.git
         cd mxe
-        make MXE_TARGETS="i686-w64-mingw32.static x86_64-w64-mingw32.static" -j$(nproc)
-    - name: Build libsoundio 32-bit
-      run: |
-        mkdir build-win32
-        cd build-win32
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/i686-w64-mingw32.static/share/cmake/mxe-conf.cmake
-        cmake --build .
-    - name: Build libsoundio 64-bit
+        make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc
+        echo "export PATH=$PWD/usr/bin:$PATH" >> $GITHUB_ENV
+    - name: Build libsoundio for Windows
       run: |
         mkdir build-win64
         cd build-win64
         cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake
-        cmake --build .
+        make
     - name: Archive artifacts
       uses: actions/upload-artifact@v4
       with:
         name: windows-build
-        path: |
-          build-win32/*.dll
-          build-win32/*.lib
-          build-win64/*.dll
-          build-win64/*.lib
+        path: build-win64/*.dll
 
   build-macos:
     runs-on: macos-latest

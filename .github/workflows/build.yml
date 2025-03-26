@@ -10,7 +10,10 @@ jobs:
     - name: Install Dependencies for MXE
       run: |
         sudo apt-get update
-        sudo apt-get install -y autoconf automake autopoint bash bison bzip2 build-essential cmake git libtool libltdl-dev pkg-config
+        sudo apt-get install -y \
+          autoconf automake autopoint bash bison bzip2 build-essential \
+          cmake git libtool libltdl-dev pkg-config \
+          libgdk-pixbuf2.0-dev gperf intltool libtool lzip python3-mako
     - name: Clone MXE
       run: git clone https://github.com/mxe/mxe.git
     - name: Build MXE for Windows targets

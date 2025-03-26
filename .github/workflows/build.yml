@@ -17,11 +17,16 @@ jobs:
         cd mxe
         make MXE_TARGETS='x86_64-w64-mingw32.static i686-w64-mingw32.static' gcc
         echo "export PATH=$PWD/usr/bin:$PATH" >> $GITHUB_ENV
+    - name: Install CMake
+      run: |
+        wget https://github.com/Kitware/CMake/releases/download/v3.28.1/cmake-3.28.1-linux-x86_64.sh
+        chmod +x cmake-3.28.1-linux-x86_64.sh
+        sudo ./cmake-3.28.1-linux-x86_64.sh --skip-license --prefix=/usr/local
     - name: Build libsoundio for Windows
       run: |
         mkdir build-win64
         cd build-win64
-        cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake
+        cmake .. -DCMAKE_TOOLCHAIN_FILE=../mxe/usr/x86_64-w64-mingw32.static/share/cmake/mxe-conf.cmake -DCMAKE_MAKE_PROGRAM=../mxe/usr/bin/x86_64-w64-mingw32.static-make
         make
     - name: Archive artifacts
       uses: actions/upload-artifact@v4

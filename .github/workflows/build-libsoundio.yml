@@ -1,0 +1,51 @@
+name: Build libsoundio
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Create build directory
+        run: mkdir build
+      
+      - name: Configure and build (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j $(nproc)
+      
+      - name: Configure and build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . -- -j $(sysctl -n hw.ncpu)
+      
+      - name: Configure and build (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+          cmake --build . --config Release -- /m
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: library-${{ runner.os }}
+          path: |
+            build/**/*.dll
+            build/**/*.so
+            build/**/*.dylib

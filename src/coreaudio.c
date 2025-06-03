@@ -10,10 +10,10 @@
 
 #include <assert.h>
 
-#include "AvailabilityMacros.h"
-#ifndef MAC_OS_VERSION_12_0
-#define kAudioObjectPropertyElementMain kAudioObjectPropertyElementMaster
-#endif
+// #include "AvailabilityMacros.h"
+// #ifndef MAC_OS_VERSION_12_0
+// #define kAudioObjectPropertyElementMain kAudioObjectPropertyElementMaster
+// #endif
 
 static const int OUTPUT_ELEMENT = 0;
 static const int INPUT_ELEMENT = 1;

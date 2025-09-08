@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 2.8.5)
 project(libsoundio C)
+
+# Ensure C11 is used so that stdatomic.h is available on MSVC
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_MODULE_PATH ${libsoundio_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 if(CMAKE_VERSION VERSION_LESS 3.0.0)
@@ -199,8 +204,9 @@ set(LIBSOUNDIO_LIBS
 
 if(MSVC)
     set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /Wall")
-    set(LIB_CFLAGS "/TP /W4")
-    set(EXAMPLE_CFLAGS "/W4")
+    # Compile as C (not C++), enable C11 atomics on MSVC, and use warning level 4
+    set(LIB_CFLAGS "/W4 /experimental:c11atomics")
+    set(EXAMPLE_CFLAGS "/W4 /experimental:c11atomics")
     set(TEST_CFLAGS "${LIB_CFLAGS}")
     set(TEST_LDFLAGS " ")
     set(LIBM " ")

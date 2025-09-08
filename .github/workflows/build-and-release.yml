@@ -77,8 +77,61 @@ jobs:
         name: libsoundio-linux-x64
         path: build/libsoundio-linux-x64.tar.gz
         
+  build-macos-arm64:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. \
+          -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_STATIC_LIBS=OFF \
+          -DBUILD_DYNAMIC_LIBS=ON \
+          -DBUILD_EXAMPLE_PROGRAMS=OFF \
+          -DBUILD_TESTS=ON \
+          -DENABLE_ALSA=OFF \
+          -DENABLE_PULSEAUDIO=OFF \
+          -DENABLE_JACK=OFF \
+          -DENABLE_COREAUDIO=ON \
+          -DENABLE_WASAPI=OFF
+
+    - name: Build
+      run: |
+        cd build
+        make -j"$(sysctl -n hw.ncpu)"
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest --output-on-failure
+
+    - name: Create artifacts
+      run: |
+        cd build
+        mkdir -p artifacts
+        # Dynamic library
+        find . -name "libsoundio*.dylib" -type f -exec cp {} artifacts/ \;
+        # Headers
+        cp -r ../soundio artifacts/
+        # Metadata
+        cp ../LICENSE artifacts/
+        cp ../README.md artifacts/
+        # Archive
+        tar -czf libsoundio-macos-arm64.tar.gz -C artifacts .
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: libsoundio-macos-arm64
+        path: build/libsoundio-macos-arm64.tar.gz
+        
   create-release:
-    needs: build-linux
+    needs: [build-linux, build-macos-arm64]
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -88,16 +141,24 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Download artifacts
+    - name: Download Linux artifact
       uses: actions/download-artifact@v4
       with:
         name: libsoundio-linux-x64
+        path: artifacts/
+
+    - name: Download macOS ARM artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: libsoundio-macos-arm64
         path: artifacts/
         
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: artifacts/libsoundio-linux-x64.tar.gz
+        files: |
+          artifacts/libsoundio-linux-x64.tar.gz
+          artifacts/libsoundio-macos-arm64.tar.gz
         generate_release_notes: true
         draft: false
         prerelease: false

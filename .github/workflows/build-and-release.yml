@@ -61,14 +61,11 @@ jobs:
       run: |
         cd build
         mkdir -p artifacts
-        # 共有ライブラリをコピー
-        find . -name "libsoundio.so*" -type f -exec cp {} artifacts/ \;
-        # ヘッダーファイルをコピー
-        cp -r ../soundio artifacts/
-        # その他のファイル
-        cp ../LICENSE artifacts/
-        cp ../README.md artifacts/
-        # アーカイブ作成
+        # Include SONAME symlink and actual library; preserve symlinks
+        for f in libsoundio.so libsoundio.so.*; do
+          if [ -e "$f" ]; then cp -a "$f" artifacts/; fi
+        done
+        # Archive
         tar -czf libsoundio-linux-x64.tar.gz -C artifacts .
         
     - name: Upload artifacts
@@ -114,13 +111,10 @@ jobs:
       run: |
         cd build
         mkdir -p artifacts
-        # Dynamic library
-        find . -name "libsoundio*.dylib" -type f -exec cp {} artifacts/ \;
-        # Headers
-        cp -r ../soundio artifacts/
-        # Metadata
-        cp ../LICENSE artifacts/
-        cp ../README.md artifacts/
+        # Include install_name symlink(s) and actual library; preserve symlinks
+        for f in libsoundio.dylib libsoundio.*.dylib; do
+          if [ -e "$f" ]; then cp -a "$f" artifacts/; fi
+        done
         # Archive
         tar -czf libsoundio-macos-arm64.tar.gz -C artifacts .
 
